@@ -8,10 +8,17 @@ interface Record {
   gender: string;
   event: string;
   time: string;
+  status: string; // DNF 상태를 저장할 필드 추가
+  shouldSave: boolean;
 }
 
 async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function formatTime(timeStr: string): string {
+  if (!timeStr) return "";
+  return timeStr.split(".")[0];
 }
 
 async function scrapeRecord(bibNo: number): Promise<Record> {
@@ -22,32 +29,61 @@ async function scrapeRecord(bibNo: number): Promise<Record> {
     const response = await axios.get(url);
     const $ = cheerio.load(response.data);
 
-    // 결과가 없는 경우 체크
-    if (response.data.includes("자료가 없습니다")) {
-      return { bibNo, gender: "", event: "", time: "" };
+    if (
+      response.data.includes("데이터가 없습니다") ||
+      response.data.includes("No Results")
+    ) {
+      return {
+        bibNo,
+        gender: "",
+        event: "",
+        time: "",
+        status: "",
+        shouldSave: false,
+      };
     }
 
-    // 선수 정보가 있는 요소 찾기 (p.name span)
     const playerInfoElement = $("p.name span");
     const playerInfoText = playerInfoElement.text().trim();
 
-    // 성별과 종목 추출 (예: "M 메디오폰도78.5km" 또는 "M 그란폰도121.52km")
     const categoryMatch = playerInfoText.match(/([MF]) (그란폰도|메디오폰도)/);
 
     const gender = categoryMatch ? categoryMatch[1] : "";
     const event = categoryMatch ? categoryMatch[2] : "";
 
-    // 기록 추출 - div.record div.time 요소에서 직접 추출
     let time = "";
+    let status = "";
     const timeElement = $("div.record div.time");
     if (timeElement.length > 0) {
-      time = timeElement.text().trim();
+      time = formatTime(timeElement.text().trim());
     }
 
-    return { bibNo, gender, event, time };
+    const startTimeElement = $("div.record p").filter((_, el) =>
+      $(el).text().includes("Start Time")
+    );
+    if (startTimeElement.length > 0 && !time) {
+      time = ""; // 시간 필드는 비우고
+      status = "DNF"; // 상태 필드에 DNF 표시
+    }
+
+    return {
+      bibNo,
+      gender,
+      event,
+      time,
+      status,
+      shouldSave: true,
+    };
   } catch (error) {
     console.error(`Error processing BIB #${bibNo}:`, error);
-    return { bibNo, gender: "", event: "", time: "" };
+    return {
+      bibNo,
+      gender: "",
+      event: "",
+      time: "",
+      status: "",
+      shouldSave: false,
+    };
   }
 }
 
@@ -56,14 +92,21 @@ async function main() {
   const endBib = parseInt(process.argv[3]) || 106;
 
   const outputFile = path.join(__dirname, "results_2024.csv");
-  fs.writeFileSync(outputFile, "BIB_NO,Gender,Event,Time\n");
+  fs.writeFileSync(outputFile, "BIB_NO,Gender,Event,Time,Status\n");
 
   for (let bibNo = startBib; bibNo <= endBib; bibNo++) {
     const record = await scrapeRecord(bibNo);
 
-    const csvLine = `${record.bibNo},${record.gender},${record.event},${record.time}\n`;
-    fs.appendFileSync(outputFile, csvLine);
-    console.log(csvLine.trim());
+    // 항상 콘솔에는 출력
+    console.log(
+      `${record.bibNo},${record.gender},${record.event},${record.time},${record.status}`
+    );
+
+    // shouldSave가 true인 경우에만 CSV에 기록
+    if (record.shouldSave) {
+      const csvLine = `${record.bibNo},${record.gender},${record.event},${record.time},${record.status}\n`;
+      fs.appendFileSync(outputFile, csvLine);
+    }
 
     await delay(500);
   }
