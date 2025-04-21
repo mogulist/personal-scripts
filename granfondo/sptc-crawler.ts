@@ -2,13 +2,14 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
+import { getEventInfo, generateUrl } from "./consts";
 
 interface Record {
   bibNo: number;
   gender: string;
   event: string;
   time: string;
-  status: string; // DNF 상태를 저장할 필드 추가
+  status: string;
   shouldSave: boolean;
 }
 
@@ -21,9 +22,17 @@ function formatTime(timeStr: string): string {
   return timeStr.split(".")[0];
 }
 
-async function scrapeRecord(bibNo: number): Promise<Record> {
-  const bibStr = bibNo.toString().padStart(6, "0");
-  const url = `http://time.spct.co.kr/m2.php?EVENT_NO=2024042803&TargetYear=2024&currentPage=1&BIB_NO=${bibStr}`;
+async function scrapeRecord(
+  location: string,
+  year: string,
+  bibNo: number
+): Promise<Record> {
+  const eventInfo = getEventInfo(location, year);
+  if (!eventInfo) {
+    throw new Error(`Invalid location or year: ${location} ${year}`);
+  }
+
+  const url = generateUrl(eventInfo, bibNo);
 
   try {
     const response = await axios.get(url);
@@ -62,8 +71,8 @@ async function scrapeRecord(bibNo: number): Promise<Record> {
       $(el).text().includes("Start Time")
     );
     if (startTimeElement.length > 0 && !time) {
-      time = ""; // 시간 필드는 비우고
-      status = "DNF"; // 상태 필드에 DNF 표시
+      time = "";
+      status = "DNF";
     }
 
     return {
@@ -88,21 +97,35 @@ async function scrapeRecord(bibNo: number): Promise<Record> {
 }
 
 async function main() {
-  const startBib = parseInt(process.argv[2]) || 105;
-  const endBib = parseInt(process.argv[3]) || 106;
+  const [location, year, startBibStr, endBibStr] = process.argv.slice(2);
 
-  const outputFile = path.join(__dirname, "results_2024.csv");
+  if (!location || !year || !startBibStr || !endBibStr) {
+    console.error(
+      "Usage: npx ts-node sptc-crawler.ts <location> <year> <start_bib> <end_bib>"
+    );
+    console.error("Example: npx ts-node sptc-crawler.ts 홍천 2025 1 9999");
+    process.exit(1);
+  }
+
+  const startBib = parseInt(startBibStr);
+  const endBib = parseInt(endBibStr);
+
+  const eventInfo = getEventInfo(location, year);
+  if (!eventInfo) {
+    console.error(`Invalid location or year: ${location} ${year}`);
+    process.exit(1);
+  }
+
+  const outputFile = path.join(__dirname, `results_${location}_${year}.csv`);
   fs.writeFileSync(outputFile, "BIB_NO,Gender,Event,Time,Status\n");
 
   for (let bibNo = startBib; bibNo <= endBib; bibNo++) {
-    const record = await scrapeRecord(bibNo);
+    const record = await scrapeRecord(location, year, bibNo);
 
-    // 항상 콘솔에는 출력
     console.log(
       `${record.bibNo},${record.gender},${record.event},${record.time},${record.status}`
     );
 
-    // shouldSave가 true인 경우에만 CSV에 기록
     if (record.shouldSave) {
       const csvLine = `${record.bibNo},${record.gender},${record.event},${record.time},${record.status}\n`;
       fs.appendFileSync(outputFile, csvLine);
