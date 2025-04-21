@@ -27,25 +27,21 @@ async function scrapeRecord(bibNo: number): Promise<Record> {
       return { bibNo, gender: "", event: "", time: "" };
     }
 
-    // 성별과 종목 추출
-    const categoryElement = $(".M, .F");
-    let gender = "";
-    let event = "";
+    // 선수 정보가 있는 요소 찾기 (p.name span)
+    const playerInfoElement = $("p.name span");
+    const playerInfoText = playerInfoElement.text().trim();
 
-    if (categoryElement.length > 0) {
-      gender = categoryElement.attr("class") || "";
-      const eventText = categoryElement.text().trim();
-      event = eventText.includes("그란폰도") ? "그란폰도" : "메디오폰도";
-    }
+    // 성별과 종목 추출 (예: "M 메디오폰도78.5km" 또는 "M 그란폰도121.52km")
+    const categoryMatch = playerInfoText.match(/([MF]) (그란폰도|메디오폰도)/);
 
-    // 기록 추출
-    const timeElement = $(".record");
+    const gender = categoryMatch ? categoryMatch[1] : "";
+    const event = categoryMatch ? categoryMatch[2] : "";
+
+    // 기록 추출 - div.record div.time 요소에서 직접 추출
     let time = "";
+    const timeElement = $("div.record div.time");
     if (timeElement.length > 0) {
       time = timeElement.text().trim();
-      if (time.includes("DNF")) {
-        time = "DNF";
-      }
     }
 
     return { bibNo, gender, event, time };
@@ -56,25 +52,19 @@ async function scrapeRecord(bibNo: number): Promise<Record> {
 }
 
 async function main() {
-  const results: Record[] = [];
-  const outputFile = path.join(__dirname, "results_2024.csv");
+  const startBib = parseInt(process.argv[2]) || 105;
+  const endBib = parseInt(process.argv[3]) || 106;
 
-  // CSV 헤더 작성
+  const outputFile = path.join(__dirname, "results_2024.csv");
   fs.writeFileSync(outputFile, "BIB_NO,Gender,Event,Time\n");
 
-  for (let bibNo = 1; bibNo < 10000; bibNo++) {
+  for (let bibNo = startBib; bibNo <= endBib; bibNo++) {
     const record = await scrapeRecord(bibNo);
 
-    // CSV 행 작성
     const csvLine = `${record.bibNo},${record.gender},${record.event},${record.time}\n`;
     fs.appendFileSync(outputFile, csvLine);
+    console.log(csvLine.trim());
 
-    // 진행상황 출력
-    if (bibNo % 100 === 0) {
-      console.log(`Processed ${bibNo} records...`);
-    }
-
-    // 서버 부하를 줄이기 위한 딜레이
     await delay(500);
   }
 
