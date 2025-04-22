@@ -62,17 +62,34 @@ async function scrapeRecord(
 
     let time = "";
     let status = "";
+
+    // 먼저 기록이 있는지 확인
     const timeElement = $("div.record div.time");
     if (timeElement.length > 0) {
-      time = formatTime(timeElement.text().trim());
+      const recordTime = timeElement.text().trim();
+      if (recordTime && recordTime !== "") {
+        time = formatTime(recordTime);
+      }
     }
 
-    const startTimeElement = $("div.record p").filter((_, el) =>
-      $(el).text().includes("Start Time")
-    );
-    if (startTimeElement.length > 0 && !time) {
-      time = "";
-      status = "DNF";
+    // 기록이 없는 경우 Start Time을 확인하여 DNS/DNF 구분
+    if (!time) {
+      const startTimeText = $("div.record p")
+        .filter((_, el) => $(el).text().includes("Start Time"))
+        .text()
+        .trim();
+
+      // Start Time이 있는지 확인 (실제 시간 값이 있는지 체크)
+      const hasStartTime =
+        startTimeText.includes(":") && startTimeText.split(":").length > 1;
+
+      if (hasStartTime) {
+        // Start Time은 있지만 기록이 없으면 DNF
+        status = "DNF";
+      } else {
+        // Start Time도 없으면 DNS
+        status = "DNS";
+      }
     }
 
     return {
