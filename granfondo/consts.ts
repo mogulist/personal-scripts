@@ -22,6 +22,13 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
       name: "홍천그란폰도",
     },
   },
+  양양: {
+    "2025": {
+      eventNo: "2025042601",
+      year: "2025",
+      name: "양양그란폰도",
+    },
+  },
 };
 
 export function getEventInfo(location: string, year: string): EventInfo | null {
@@ -32,5 +39,7 @@ export function generateUrl(eventInfo: EventInfo, bibNo: number): string {
   const bibStr = bibNo.toString().padStart(6, "0");
   // 2025년은 https를 사용
   const protocol = eventInfo.year === "2025" ? "https" : "http";
-  return `${protocol}://time.spct.kr/m2.php?EVENT_NO=${eventInfo.eventNo}&TargetYear=${eventInfo.year}&currentPage=1&BIB_NO=${bibStr}`;
+
+  // 모든 이벤트에 대해 새로운 URL 형식 사용 (E와 B 파라미터)
+  return `${protocol}://time.spct.kr/m2.php?E=${eventInfo.eventNo}&B=${bibStr}`;
 }
