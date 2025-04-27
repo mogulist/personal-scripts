@@ -6,6 +6,11 @@ interface EventInfo {
 
 export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
   홍천: {
+    "2022": {
+      eventNo: "2022090403",
+      year: "2022",
+      name: "홍천그란폰도",
+    },
     "2023": {
       eventNo: "2023041602",
       year: "2023",
@@ -23,10 +28,32 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
     },
   },
   양양: {
+    "2024": {
+      eventNo: "2024042701",
+      year: "2024",
+      name: "양양그란폰도",
+    },
     "2025": {
       eventNo: "2025042601",
       year: "2025",
       name: "양양그란폰도",
+    },
+  },
+  설악: {
+    "2022": {
+      eventNo: "2022061801",
+      year: "2022",
+      name: "설악그란폰도",
+    },
+    "2023": {
+      eventNo: "2023052001",
+      year: "2023",
+      name: "설악그란폰도",
+    },
+    "2024": {
+      eventNo: "2024051801",
+      year: "2024",
+      name: "설악그란폰도",
     },
   },
 };
