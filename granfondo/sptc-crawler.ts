@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { getEventInfo, generateUrl } from "./consts";
 
-interface Record {
+export interface Record {
   bibNo: number;
   gender: string;
   event: string;
@@ -13,16 +13,16 @@ interface Record {
   shouldSave: boolean;
 }
 
-async function delay(ms: number): Promise<void> {
+export async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function formatTime(timeStr: string): string {
+export function formatTime(timeStr: string): string {
   if (!timeStr) return "";
   return timeStr.split(".")[0];
 }
 
-async function scrapeRecord(
+export async function scrapeRecord(
   location: string,
   year: string,
   bibNo: number
