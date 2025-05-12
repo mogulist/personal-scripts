@@ -86,10 +86,20 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
     },
   },
   화천: {
+    "2025": {
+      eventNo: "2025051101",
+      year: "2025",
+      name: "화천HDR 랠리",
+    },
     "2024": {
       eventNo: "2024051204",
       year: "2024",
       name: "화천DMZ 렐리",
+    },
+    "2023": {
+      eventNo: "2023051402",
+      year: "2023",
+      name: "화천 자전거 랠리",
     },
   },
   정읍내장산: {
@@ -135,6 +145,7 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
       name: "문경새재 그란폰도",
     },
   },
+  화천HDR: {},
 };
 
 export function getEventInfo(location: string, year: string): EventInfo | null {
