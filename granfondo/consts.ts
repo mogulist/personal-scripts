@@ -119,6 +119,23 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
       name: "화천 DMZ 렐리",
     },
   },
+  홍천KOM: {
+    "2025": {
+      eventNo: "2025041904",
+      year: "2025",
+      name: "홍천KOM",
+    },
+    "2024": {
+      eventNo: "2024042805",
+      year: "2024",
+      name: "홍천KOM",
+    },
+    "2023": {
+      eventNo: "2023041603",
+      year: "2023",
+      name: "홍천KOM",
+    },
+  },
   고성: {
     "2025": {
       eventNo: "2025032901",
