@@ -56,7 +56,7 @@ async function scrapeRecord(
     const playerInfoElement = $("p.name span");
     const playerInfoText = playerInfoElement.text().trim();
 
-    const categoryMatch = playerInfoText.match(/([MF]) (그란폰도|메디오폰도)/);
+    const categoryMatch = playerInfoText.match(/([MF]) (.+)/);
 
     const gender = categoryMatch ? categoryMatch[1] : "";
     const event = categoryMatch ? categoryMatch[2] : "";
@@ -150,7 +150,7 @@ async function scrapeYear(
       fs.writeFileSync(outputFile, JSON.stringify(records, null, 2));
     }
 
-    await delay(500);
+    await delay(250); // 0.25초 대기 (1초에 4번 호출)
   }
 
   console.log(`Scraping completed for ${location} ${year}!`);
