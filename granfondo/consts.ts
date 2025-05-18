@@ -55,6 +55,11 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
       year: "2024",
       name: "설악그란폰도",
     },
+    "2025": {
+      eventNo: "2025051702",
+      year: "2025",
+      name: "설악그란폰도",
+    },
   },
   영산강: {
     "2025": {
