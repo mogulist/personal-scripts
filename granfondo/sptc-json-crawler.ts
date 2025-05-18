@@ -6,13 +6,15 @@ import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
 
-interface Record {
+type Record = {
   BIB_NO: number;
   Gender: string;
   Event: string;
   Time: string;
   Status: string;
-}
+  StartTime?: string;
+  FinishTime?: string;
+};
 
 async function delay(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -63,6 +65,8 @@ async function scrapeRecord(
 
     let time = "";
     let status = "";
+    let startTime = "";
+    let finishTime = "";
 
     // 먼저 기록이 있는지 확인
     const timeElement = $("div.record div.time");
@@ -72,6 +76,19 @@ async function scrapeRecord(
         time = formatTime(recordTime);
       }
     }
+
+    // Start Time, Finish Time 파싱
+    $("div.record p").each((_, el) => {
+      const text = $(el).text().trim();
+      if (text.startsWith("Start Time")) {
+        // "Start Time : 07:23:17.79" 형식에서 시간만 추출
+        const match = text.match(/Start Time\s*:?\s*([0-9:.]+)/);
+        if (match) startTime = match[1];
+      } else if (text.startsWith("Finish Time")) {
+        const match = text.match(/Finish Time\s*:?\s*([0-9:.]+)/);
+        if (match) finishTime = match[1];
+      }
+    });
 
     // 기록이 없는 경우 Start Time을 확인하여 DNS/DNF 구분
     if (!time) {
@@ -99,6 +116,8 @@ async function scrapeRecord(
       Event: event,
       Time: time,
       Status: status,
+      StartTime: startTime,
+      FinishTime: finishTime,
     };
   } catch (error) {
     console.error(`Error processing BIB #${bibNo}:`, error);
@@ -136,6 +155,7 @@ async function scrapeYear(
   fs.writeFileSync(outputFile, JSON.stringify(records, null, 2));
 
   for (let bibNo = startBib; bibNo <= endBib; bibNo++) {
+    const apiStart = Date.now();
     const record = await scrapeRecord(location, year, bibNo);
 
     // 항상 콘솔에 표시
@@ -150,7 +170,10 @@ async function scrapeYear(
       fs.writeFileSync(outputFile, JSON.stringify(records, null, 2));
     }
 
-    await delay(250); // 0.25초 대기 (1초에 4번 호출)
+    const PERIOD = 150;
+    const fetchAndWriteFileDuration = Date.now() - apiStart;
+    const delayMs = Math.max(0, PERIOD - fetchAndWriteFileDuration);
+    await delay(delayMs);
   }
 
   console.log(`Scraping completed for ${location} ${year}!`);
