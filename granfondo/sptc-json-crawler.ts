@@ -5,6 +5,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
+import { Command } from "commander";
 
 type Record = {
   BIB_NO: number;
@@ -22,7 +23,7 @@ async function delay(ms: number): Promise<void> {
 
 function formatTime(timeStr: string): string {
   if (!timeStr) return "";
-  return timeStr.split(".")[0];
+  return timeStr;
 }
 
 async function scrapeRecord(
@@ -135,7 +136,8 @@ async function scrapeYear(
   location: string,
   year: string,
   startBib: number = 1,
-  endBib: number = 9999
+  endBib: number = 9999,
+  period: number = 150
 ): Promise<void> {
   const eventInfo = getEventInfo(location, year);
   if (!eventInfo) {
@@ -150,6 +152,9 @@ async function scrapeYear(
     `Starting to scrape ${location} Granfondo ${year} from bib #${startBib} to #${endBib}`
   );
   console.log(`Results will be saved to: ${outputFile}`);
+  console.log(
+    `API call period: ${period}ms (${1000 / period} calls per second)`
+  );
 
   // Create initial empty file
   fs.writeFileSync(outputFile, JSON.stringify(records, null, 2));
@@ -170,9 +175,8 @@ async function scrapeYear(
       fs.writeFileSync(outputFile, JSON.stringify(records, null, 2));
     }
 
-    const PERIOD = 150;
     const fetchAndWriteFileDuration = Date.now() - apiStart;
-    const delayMs = Math.max(0, PERIOD - fetchAndWriteFileDuration);
+    const delayMs = Math.max(0, period - fetchAndWriteFileDuration);
     await delay(delayMs);
   }
 
@@ -180,24 +184,31 @@ async function scrapeYear(
 }
 
 async function main() {
-  const args = process.argv.slice(2);
+  const program = new Command();
 
-  if (args.length === 0) {
-    console.error(
-      "Usage: npx ts-node sptc-json-crawler.ts <location> [year] [start_bib] [end_bib]"
+  program
+    .name("sptc-json-crawler")
+    .description("Crawl SPTC Granfondo results")
+    .argument("<location>", "Location of the event (e.g., 영산강, 홍천)")
+    .argument("[year]", "Year of the event (e.g., 2024)")
+    .argument("[startBib]", "Starting bib number", (val) => parseInt(val, 10))
+    .argument("[endBib]", "Ending bib number", (val) => parseInt(val, 10))
+    .option(
+      "-p, --period <number>",
+      "API call period in milliseconds (default: 150)",
+      (val) => parseInt(val, 10),
+      150
     );
-    console.error("Example: npx ts-node sptc-json-crawler.ts 영산강");
-    console.error("Example: npx ts-node sptc-json-crawler.ts 영산강 2024");
-    console.error(
-      "Example: npx ts-node sptc-json-crawler.ts 영산강 2024 1 2000"
-    );
-    process.exit(1);
-  }
 
-  const location = args[0];
-  const year = args[1];
-  const startBib = args[2] ? parseInt(args[2]) : 1;
-  const endBib = args[3] ? parseInt(args[3]) : 9999;
+  program.parse();
+
+  const options = program.opts();
+  const [location, year, startBib = 1, endBib = 9999] = program.args as [
+    string,
+    string | undefined,
+    number,
+    number
+  ];
 
   if (!EVENTS[location]) {
     console.error(`Invalid location: ${location}`);
@@ -206,12 +217,12 @@ async function main() {
 
   if (year) {
     // If year is specified, scrape only that year
-    await scrapeYear(location, year, startBib, endBib);
+    await scrapeYear(location, year, startBib, endBib, options.period);
   } else {
     // If no year is specified, scrape all available years
     const years = Object.keys(EVENTS[location]);
     for (const year of years) {
-      await scrapeYear(location, year);
+      await scrapeYear(location, year, startBib, endBib, options.period);
     }
   }
 }
