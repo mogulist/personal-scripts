@@ -79,6 +79,11 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
     },
   },
   정읍내장산: {
+    "2025": {
+      eventNo: "2025060103",
+      year: "2025",
+      name: "정읍내장산 그란폰도",
+    },
     "2024": {
       eventNo: "2024052601",
       year: "2024",
