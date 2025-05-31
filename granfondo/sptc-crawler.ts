@@ -2,7 +2,7 @@ import axios from "axios";
 import * as cheerio from "cheerio";
 import * as fs from "fs";
 import * as path from "path";
-import { getEventInfo, generateUrl } from "./consts";
+import { getEventInfo, generateUrl } from "./event.utils";
 
 export interface Record {
   bibNo: number;
