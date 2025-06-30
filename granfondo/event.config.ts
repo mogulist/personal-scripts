@@ -183,10 +183,22 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
     },
   },
   삼척: {
+    "2025": {
+      eventNo: "2025060703",
+      year: "2025",
+      name: "삼척 그란폰도",
+    },
     "2024": {
       eventNo: "2024060902",
       year: "2024",
       name: "삼척 그란폰도",
+    },
+  },
+  삼척KOM: {
+    "2025": {
+      eventNo: "2025060704",
+      year: "2025",
+      name: "삼척KOM",
     },
   },
   부여: {
@@ -202,6 +214,11 @@ export const EVENTS: { [key: string]: { [key: string]: EventInfo } } = {
     },
   },
   연천: {
+    "2025": {
+      eventNo: "2025062101",
+      year: "2025",
+      name: "서울신문연천DMZ랠리",
+    },
     "2024": {
       eventNo: "2024061501",
       year: "2024",
