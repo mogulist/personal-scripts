@@ -154,17 +154,17 @@ async function scrapeRecord(usedata: string, bibNo: number): Promise<Record> {
   }
 }
 
-async function scrapeJeongsen(
+async function scrapeGoseong(
   startBib: number = 1,
   endBib: number = 9999,
   period: number = 150
 ): Promise<void> {
-  const usedata = "202550000128"; // 제5회 정선 동강 그란폰도 코드
-  const outputFile = path.join(__dirname, "정선.json");
+  const usedata = "202550000149"; // 2025 Tour de DMZ 고성그란폰도
+  const outputFile = path.join(__dirname, "뚜르드DMZ고성_2025.json");
   const records: Record[] = [];
 
   console.log(
-    `Starting to scrape 제5회 정선 동강 그란폰도 from bib #${startBib} to #${endBib}`
+    `Starting to scrape 2025 Tour de DMZ 고성그란폰도 from bib #${startBib} to #${endBib}`
   );
   console.log(`Results will be saved to: ${outputFile}`);
   console.log(
@@ -195,7 +195,7 @@ async function scrapeJeongsen(
     await delay(delayMs);
   }
 
-  console.log(`Scraping completed for 제5회 정선 동강 그란폰도!`);
+  console.log(`Scraping completed for 2025 Tour de DMZ 고성그란폰도!`);
 }
 
 async function main() {
@@ -203,7 +203,7 @@ async function main() {
 
   program
     .name("smartchip-crawler")
-    .description("Crawl SmartChip Jeongsen Granfondo results")
+    .description("Crawl 2025 Tour de DMZ Goseong Granfondo results")
     .argument("[startBib]", "Starting bib number", (val) => parseInt(val, 10))
     .argument("[endBib]", "Ending bib number", (val) => parseInt(val, 10))
     .option(
@@ -220,7 +220,7 @@ async function main() {
   const startBib = args[0] ? parseInt(args[0], 10) : 1;
   const endBib = args[1] ? parseInt(args[1], 10) : 9999;
 
-  await scrapeJeongsen(startBib, endBib, options.period);
+  await scrapeGoseong(startBib, endBib, options.period);
 }
 
 main().catch(console.error);
